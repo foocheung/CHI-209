@@ -24,11 +24,13 @@ file <- args$'--file'
 threshold <- as.numeric(args$'--t')
 output_dir <- args$'--output-dir'
 
+file<-"DATA/merged_20230615_Ramya_freq. main population.txt"
+
 # Read data
 aa <- read_tsv(file) %>% filter(!is.na(REPOSID))
 aaa <- aa %>% mutate(SampleID = REPOSID)
 count <- aaa %>% select(42:139)
-
+rownames(count) <- aaa$SampleID
 count2 <- count %>%
   rownames_to_column() %>%
   gather(var, value, -rowname) %>%
@@ -51,15 +53,21 @@ a <- aa %>%
   arrange(SampleID)
 
 a <- clean_names(a)
+
+
 design <- model.matrix(~0 + group2 + plate, data = a)
 
 # Perform LIMMA analysis
 corfit <- duplicateCorrelation(count3, design)
+
 cont.matrix <- makeContrasts(delta1 = (group2KS_MCD_KICS) - (group2KS), levels = design)
+
 fit <- lmFit(count3, design = design, block = aaa$SampleID, correlation = corfit$consensus)
 contrast_fit <- contrasts.fit(fit, contrasts = cont.matrix)
 ebays_fit <- eBayes(contrast_fit, robust = TRUE)
+
 baseline <- as.data.frame(topTable(ebays_fit, coef = 1, number = Inf))
+
 p <- baseline %>% filter(adj.P.Val < threshold)
 
 # Write results to file
