@@ -24,8 +24,6 @@ file <- args$'--file'
 threshold <- as.numeric(args$'--t')
 output_dir <- args$'--output-dir'
 
-file<-"DATA/merged_20230615_Ramya_freq. main population.txt"
-
 # Read data
 aa <- read_tsv(file) %>% filter(!is.na(REPOSID))
 aaa <- aa %>% mutate(SampleID = REPOSID)
